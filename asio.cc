@@ -9,7 +9,6 @@
 #include <array>
 #include <vector>
 #include <boost/asio.hpp>
-#include <google/protobuf/io/coded_stream.h>
 
 using namespace std;
 using boost::asio::local::stream_protocol;
@@ -30,12 +29,16 @@ class session : public enable_shared_from_this<session> {
     
     
     
-    void handle_initial_read(const boost::system::error_code& error,
-      size_t bytes_transferred) {
+    void handle_initial_read(const boost::system::error_code& error) {
       	if(error) return;
-      	google::protobuf::io::CodedInputStream cis(initial_buffer.data(), bytes_transferred);
-      	auto r = cis.ReadVarint32(&message_length);
-      	if(!r) {cerr << "what"<<endl; return;}
+      	//google::protobuf::io::CodedInputStream cis(initial_buffer.data(), bytes_transferred);
+      	//auto r = cis.ReadVarint32(&message_length);
+      	//if(!r) {cerr << "what"<<endl; return;}
+      	//cout << header_buffer[0] << endl;
+      	for(auto x: header_buffer) {
+      		message_length <<= 8;
+      		message_length += x;
+      	}
       	
       	cout << message_length << endl;
       }
@@ -47,8 +50,8 @@ class session : public enable_shared_from_this<session> {
     }
 
 	void start() {
-		socket_.async_read_some(boost::asio::buffer(initial_buffer.data(), INITIAL_BUFFER_SIZE),
-			bind(&session::handle_initial_read, shared_from_this(), std::placeholders::_1, std::placeholders::_2));
+		boost::asio::async_read(socket_, boost::asio::buffer(header_buffer.data(), 4),
+			bind(&session::handle_initial_read, shared_from_this(), std::placeholders::_1));
 	}
 	
 	// parse the size and return it. increments the given iterator, so it will start after the varint ends
@@ -59,10 +62,10 @@ class session : public enable_shared_from_this<session> {
 	
  private:
 	stream_protocol::socket socket_;
-	array<uint8_t, INITIAL_BUFFER_SIZE> initial_buffer;
+	array<uint8_t, 4> header_buffer = {};
 	vector<uint8_t> message;
 	
-	uint32_t message_length;
+	uint32_t message_length = 0;
 	
 };
 
