@@ -24,24 +24,14 @@ class handler: public asio_handler<handler> {
 		
 		uint32_t message_length = 0;
 
-		boost::asio::read(socket_, boost::asio::buffer(&message_length, 4));
-		message_length = __builtin_bswap32(message_length);
-      	
-// We could do the header-parsing manually... but where's the fun in that?
-// 		array<uint8_t, 4> header_buffer = {};
-// 		boost::asio::read(socket_, boost::asio::buffer(header_buffer.data(), 4));
-// 		for(auto x: header_buffer) {
-// 			message_length <<= 8;
-// 			message_length += x;
-// 		}
+		array<uint8_t, 4> header_buffer = {};
+		boost::asio::read(socket_, boost::asio::buffer(header_buffer.data(), 4));
+		for(auto x: header_buffer) {
+			message_length <<= 8;
+			message_length += x;
+		}
 
       	cout << message_length << endl;
-
-/*
-      	bitset<32> x(message_length);
-      	cout << x << endl;
-      	exit(0);
-*/
       	
       	message.resize(message_length);
 		boost::asio::read(socket_, boost::asio::buffer(message));
