@@ -1,4 +1,4 @@
-TARGET = server_async
+TARGET = server_sync
 
 # consider also -lboost_thread-mt -lpthread
 $(TARGET): $(TARGET).cc msg.pb.cc
