@@ -5,8 +5,6 @@
 #include "msg.pb.h"
 
 
-#include <bitset> // todo
-
 #include "asio_server.h"
 
 using namespace std;
