@@ -1,7 +1,6 @@
 #include <iostream>
 #include <string>
 #include <functional>
-#include <memory>
 #include <array>
 #include <vector>
 #include <boost/asio.hpp>
@@ -12,17 +11,12 @@
 using namespace std;
 using boost::asio::local::stream_protocol;
 
-#define INITIAL_BUFFER_SIZE 256
 #define ADDRESS "./socket"
 
 
-void tmp(const boost::system::error_code& error, std::size_t bytes_transferred) {
-
-}
-
-class session: public asio_session<session> {
+class handler: public asio_handler<handler> {
  public:
- 	session(boost::asio::io_service& io_service) : asio_session(io_service) {}
+ 	handler(boost::asio::io_service& io_service) : asio_handler(io_service) {}
  
     void handle_initial_read(const boost::system::error_code& error, std::size_t bytes_transferred) {
       	if(error) return;
@@ -37,7 +31,7 @@ class session: public asio_session<session> {
       	message.resize(message_length);
       	
       	boost::asio::async_read(socket_, boost::asio::buffer(message),
-			bind(&session::handle_message, shared_from_this(), std::placeholders::_1));
+			bind(&handler::handle_message, shared_from_this(), std::placeholders::_1));
 			
     }
     
@@ -51,7 +45,7 @@ class session: public asio_session<session> {
     }
 
 	void handle() {
-		auto handler = bind(&session::handle_initial_read, shared_from_this(), std::placeholders::_1, std::placeholders::_2);
+		auto handler = bind(&handler::handle_initial_read, shared_from_this(), std::placeholders::_1, std::placeholders::_2);
 		
 		boost::asio::async_read(socket_, boost::asio::buffer(header_buffer.data(), 4), handler);
 		//boost::asio::async_read(socket_, boost::asio::buffer(header_buffer.data(), 4), tmp);
@@ -74,7 +68,7 @@ int main() {
 		boost::asio::io_service io_service;
 		unlink(ADDRESS);
 		stream_protocol::endpoint ep(ADDRESS);
-		asio_server<session> s(io_service, ep);
+		asio_server<handler> s(io_service, ep);
 		
 		io_service.run();
 		
