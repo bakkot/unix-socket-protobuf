@@ -1,7 +1,6 @@
 #include <iostream>
 #include <string>
 #include <functional>
-#include <array>
 #include <vector>
 #include <boost/asio.hpp>
 #include "msg.pb.h"
@@ -18,23 +17,17 @@ class handler: public asio_handler<handler> {
  public:
  	handler(boost::asio::io_service& io_service) : asio_handler(io_service) {}
  
-    void handle_initial_read(const boost::system::error_code& error, std::size_t bytes_transferred) {
-      	if(error) return;
+    void handle_initial_read(const boost::system::error_code& error, size_t bytes_transferred) {
+    	if(error) {cerr << error.message() << endl; return;}
 
-      	for(auto x: header_buffer) {
-      		message_length <<= 8;
-      		message_length += x;
-      	}
+      	message_length = ntohl(message_length);
       	
       	cout << message_length << endl;
       	
       	message.resize(message_length);
-      	
       	boost::asio::async_read(socket_, boost::asio::buffer(message),
 			bind(&handler::handle_message, shared_from_this(), std::placeholders::_1));
-			
     }
-    
     
     void handle_message(const boost::system::error_code& error) {
     	if(error) {cerr << error.message() << endl; return;}
@@ -47,16 +40,13 @@ class handler: public asio_handler<handler> {
 	void handle() {
 		auto handler = bind(&handler::handle_initial_read, shared_from_this(), std::placeholders::_1, std::placeholders::_2);
 		
-		boost::asio::async_read(socket_, boost::asio::buffer(header_buffer.data(), 4), handler);
-		//boost::asio::async_read(socket_, boost::asio::buffer(header_buffer.data(), 4), tmp);
+		boost::asio::async_read(socket_, boost::asio::buffer(&message_length, 4), handler);
 	}
 
  private:
-	array<uint8_t, 4> header_buffer = {};
 	vector<uint8_t> message;
 	
 	uint32_t message_length = 0;
-
 };
 
 
