@@ -7,6 +7,8 @@
 #include <boost/asio.hpp>
 #include "msg.pb.h"
 
+#include "asio_server.h"
+
 using namespace std;
 using boost::asio::local::stream_protocol;
 
@@ -17,15 +19,7 @@ using boost::asio::local::stream_protocol;
 class session : public enable_shared_from_this<session> {
  public:
 	session(boost::asio::io_service& io_service)
-    : socket_(io_service) {
-    	//cout << "Someone wants to talk!" << (this) << endl;
-    }
-    
-    ~session() {
-    	//cout << "done talking..." << (this) << endl;
-    }
-    
-    
+    : socket_(io_service) {}
     
     void handle_initial_read(const boost::system::error_code& error) {
       	if(error) return;
@@ -56,7 +50,7 @@ class session : public enable_shared_from_this<session> {
     	return socket_;
     }
 
-	void start() {
+	void handle() {
 		boost::asio::async_read(socket_, boost::asio::buffer(header_buffer.data(), 4),
 			bind(&session::handle_initial_read, shared_from_this(), std::placeholders::_1));
 	}
@@ -73,25 +67,6 @@ class session : public enable_shared_from_this<session> {
 
 
 
-class server {
-public:
-	boost::asio::io_service& io_service_;
-	stream_protocol::acceptor acceptor_;
-	
-	server(boost::asio::io_service& io_service, stream_protocol::endpoint endpoint)
-	: io_service_(io_service), acceptor_(io_service, endpoint) {
-		auto the_session = make_shared<session>(io_service_);
-		acceptor_.async_accept(the_session->socket(), std::bind(&server::handle_accept, this, the_session, std::placeholders::_1));
-	}
-	
-	void handle_accept(shared_ptr<session> session, const boost::system::error_code& error) {
-		if(!error)
-			session->start();
-		
-		session.reset(new class session(io_service_));
-		acceptor_.async_accept(session->socket(), std::bind(&server::handle_accept, this, session, std::placeholders::_1));
-	}
-};
 	
 
 int main() {
@@ -99,7 +74,7 @@ int main() {
 		boost::asio::io_service io_service;
 		unlink(ADDRESS);
 		stream_protocol::endpoint ep(ADDRESS);
-		server s(io_service, ep);
+		asio_server<session> s(io_service, ep);
 		
 		io_service.run();
 		

@@ -1,4 +1,4 @@
-TARGET = asio
+TARGET = server_async
 
 # consider also -lboost_thread-mt -lpthread
 $(TARGET): $(TARGET).cc msg.pb.cc
