@@ -24,15 +24,11 @@ class handler: public asio_handler<handler> {
 		
 		uint32_t message_length = 0;
 
-		array<uint8_t, 4> header_buffer = {};
-		boost::asio::read(socket_, boost::asio::buffer(header_buffer.data(), 4));
-		for(auto x: header_buffer) {
-			message_length <<= 8;
-			message_length += x;
-		}
-
-      	cout << message_length << endl;
+		boost::asio::read(socket_, boost::asio::buffer(&message_length, 4));
+		message_length = ntohl(message_length);
       	
+      	cout << message_length << endl;
+
       	message.resize(message_length);
 		boost::asio::read(socket_, boost::asio::buffer(message));
 
