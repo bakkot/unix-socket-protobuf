@@ -16,12 +16,15 @@ using boost::asio::local::stream_protocol;
 #define ADDRESS "./socket"
 
 
-class session : public enable_shared_from_this<session> {
+void tmp(const boost::system::error_code& error, std::size_t bytes_transferred) {
+
+}
+
+class session: public asio_session<session> {
  public:
-	session(boost::asio::io_service& io_service)
-    : socket_(io_service) {}
-    
-    void handle_initial_read(const boost::system::error_code& error) {
+ 	session(boost::asio::io_service& io_service) : asio_session(io_service) {}
+ 
+    void handle_initial_read(const boost::system::error_code& error, std::size_t bytes_transferred) {
       	if(error) return;
 
       	for(auto x: header_buffer) {
@@ -32,9 +35,12 @@ class session : public enable_shared_from_this<session> {
       	cout << message_length << endl;
       	
       	message.resize(message_length);
+      	
       	boost::asio::async_read(socket_, boost::asio::buffer(message),
 			bind(&session::handle_message, shared_from_this(), std::placeholders::_1));
+			
     }
+    
     
     void handle_message(const boost::system::error_code& error) {
     	if(error) {cerr << error.message() << endl; return;}
@@ -43,26 +49,20 @@ class session : public enable_shared_from_this<session> {
     	bool r = msg.ParseFromArray(message.data(), message.size());
     	cout << "Message: " << msg.cont() << endl;
     }
-    
-    
-    
-    stream_protocol::socket& socket() {
-    	return socket_;
-    }
 
 	void handle() {
-		boost::asio::async_read(socket_, boost::asio::buffer(header_buffer.data(), 4),
-			bind(&session::handle_initial_read, shared_from_this(), std::placeholders::_1));
+		auto handler = bind(&session::handle_initial_read, shared_from_this(), std::placeholders::_1, std::placeholders::_2);
+		
+		boost::asio::async_read(socket_, boost::asio::buffer(header_buffer.data(), 4), handler);
+		//boost::asio::async_read(socket_, boost::asio::buffer(header_buffer.data(), 4), tmp);
 	}
-	
-	
+
  private:
-	stream_protocol::socket socket_;
 	array<uint8_t, 4> header_buffer = {};
 	vector<uint8_t> message;
 	
 	uint32_t message_length = 0;
-	
+
 };
 
 
