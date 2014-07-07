@@ -11,6 +11,7 @@ using namespace std;
 using boost::asio::local::stream_protocol;
 
 #define INITIAL_BUFFER_SIZE 256
+#define ADDRESS "./socket"
 
 
 class session : public enable_shared_from_this<session> {
@@ -96,8 +97,8 @@ public:
 int main() {
 	try {
 		boost::asio::io_service io_service;
-		unlink("./socket");
-		stream_protocol::endpoint ep("./socket");
+		unlink(ADDRESS);
+		stream_protocol::endpoint ep(ADDRESS);
 		server s(io_service, ep);
 		
 		io_service.run();
