@@ -1,14 +1,11 @@
 #include <iostream>
 #include <string>
-// #include <boost/array.hpp>
-// #include <boost/bind.hpp>
-// #include <boost/enable_shared_from_this.hpp>
-// #include <boost/shared_ptr.hpp>
 #include <functional>
 #include <memory>
 #include <array>
 #include <vector>
 #include <boost/asio.hpp>
+#include "msg.pb.h"
 
 using namespace std;
 using boost::asio::local::stream_protocol;
@@ -20,28 +17,37 @@ class session : public enable_shared_from_this<session> {
  public:
 	session(boost::asio::io_service& io_service)
     : socket_(io_service) {
-    	cout << "Someone wants to talk!" << (this) << endl;
+    	//cout << "Someone wants to talk!" << (this) << endl;
     }
     
     ~session() {
-    	cout << "done talking..." << (this) << endl;
+    	//cout << "done talking..." << (this) << endl;
     }
     
     
     
     void handle_initial_read(const boost::system::error_code& error) {
       	if(error) return;
-      	//google::protobuf::io::CodedInputStream cis(initial_buffer.data(), bytes_transferred);
-      	//auto r = cis.ReadVarint32(&message_length);
-      	//if(!r) {cerr << "what"<<endl; return;}
-      	//cout << header_buffer[0] << endl;
+
       	for(auto x: header_buffer) {
       		message_length <<= 8;
       		message_length += x;
       	}
       	
       	cout << message_length << endl;
-      }
+      	
+      	message.resize(message_length);
+      	boost::asio::async_read(socket_, boost::asio::buffer(message),
+			bind(&session::handle_message, shared_from_this(), std::placeholders::_1));
+    }
+    
+    void handle_message(const boost::system::error_code& error) {
+    	if(error) {cerr << error.message() << endl; return;}
+    	
+    	asio::Boring msg;
+    	bool r = msg.ParseFromArray(message.data(), message.size());
+    	cout << "Message: " << msg.cont() << endl;
+    }
     
     
     
@@ -54,11 +60,6 @@ class session : public enable_shared_from_this<session> {
 			bind(&session::handle_initial_read, shared_from_this(), std::placeholders::_1));
 	}
 	
-	// parse the size and return it. increments the given iterator, so it will start after the varint ends
-	// only a member function for cleanness
-	//static size_t parse_varint(array<uint8_t, INITIAL_BUFFER_SIZE>::iterator &x) {
-		
-	//}
 	
  private:
 	stream_protocol::socket socket_;
