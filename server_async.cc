@@ -34,6 +34,10 @@ class handler: public asio_handler<handler> {
     	
     	asio::Boring msg;
     	bool r = msg.ParseFromArray(message.data(), message.size());
+    	if(!r) {
+    		cerr << "Failed parsing" << endl;
+    		exit(1);
+    	}
     	cout << "Message: " << msg.cont() << endl;
     }
 
