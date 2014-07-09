@@ -49,5 +49,6 @@ clean:
 
 .PHONY : really_clean
 really_clean: clean
+	rm -f Go/src/example_mess/msg.pb.go
 	rm -rf Go/pkg/* Go/src/code.google.com
 	
