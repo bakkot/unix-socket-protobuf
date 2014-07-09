@@ -1,6 +1,6 @@
 import socket
 from struct import pack
-import msg_pb2
+from gen import msg_pb2
 
 sock = socket.socket(socket.AF_UNIX)
 address = './socket'

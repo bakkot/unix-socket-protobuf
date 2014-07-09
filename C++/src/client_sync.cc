@@ -1,7 +1,7 @@
 #include <iostream>
 #include <boost/asio.hpp>
 
-#include "msg.pb.h"
+#include "../gen/msg.pb.h"
 
 using namespace std;
 

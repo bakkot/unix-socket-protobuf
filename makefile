@@ -1,22 +1,31 @@
 
-BINS = client_sync server_sync server_async
+CPP_BINS = client_sync server_sync server_async
 
 # consider also -lboost_thread-mt -lpthread
-LIBS = -lboost_system-mt -lprotobuf
-CFLAGS = -Wall -O2 --std=c++11 -L/usr/local/lib 
+CPP_LIBS = -lboost_system-mt -lprotobuf
+CPP_FLAGS = -Wall -O2 --std=c++11 -L/usr/local/lib 
 
-all: $(BINS) msg_pb2.py
+all: CPP Python
 
+CPP: $(CPP_BINS)
 
-$(BINS): %: %.cc msg.pb.cc asio_server.h
-	clang++ $(CFLAGS) $@.cc msg.pb.cc -o $@ $(LIBS)
+Python: Python/gen/msg_pb2.py
 
-msg.pb.cc: msg.proto
-	protoc --cpp_out=. msg.proto
+$(CPP_BINS): %: C++/src/%.cc C++/gen/msg.pb.cc C++/src/asio_server.h
+	clang++ $(CPP_FLAGS) C++/src/$@.cc C++/gen/msg.pb.cc -o C++/bin/$@ $(CPP_LIBS)
+	cp C++/bin/$@ bin/cpp_$@
 
-msg_pb2.py: msg.proto
-	protoc --python_out=. msg.proto
+C++/gen/msg.pb.cc: msg.proto
+	protoc --cpp_out=C++/gen msg.proto
+
+Python/gen/msg_pb2.py: msg.proto
+	touch Python/gen/__init__.py # I hate this.
+	protoc --python_out=Python/gen msg.proto
+	echo "#!/bin/sh\n\npython Python/client.py" > bin/python_client.sh
+	chmod +x bin/python_client.sh
+	echo "#!/bin/sh\n\npython Python/server.py" > bin/python_server.sh
+	chmod +x bin/python_server.sh
 
 .PHONY : clean
 clean:
-	rm -f $(BINS) msg.pb.cc msg.pb.h msg_pb2.py msg_pb2.pyc
+	rm -f C++/bin/* C++/gen/* Python/gen/* bin/*

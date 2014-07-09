@@ -2,7 +2,7 @@
 #include <array>
 #include <vector>
 #include <boost/asio.hpp>
-#include "msg.pb.h"
+#include "../gen/msg.pb.h"
 
 
 #include "asio_server.h"

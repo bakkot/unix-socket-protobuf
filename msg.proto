@@ -1,0 +1,8 @@
+package asio;
+
+
+//option optimize_for = LITE_RUNTIME;
+
+message Boring {
+	required string cont = 1;
+}

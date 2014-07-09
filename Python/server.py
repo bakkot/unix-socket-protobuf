@@ -1,7 +1,7 @@
 import SocketServer
 from struct import unpack
 from os import unlink
-import msg_pb2
+from gen import msg_pb2
 
 
 address = './socket'
@@ -19,7 +19,10 @@ class Session(SocketServer.BaseRequestHandler):
 		print("Message: " + pb_message.cont)
 		
 
+try:
+	unlink(address)
+except OSError as e:
+	pass
 
-unlink(address)
 server = SocketServer.UnixStreamServer(address, Session)
 server.serve_forever()
