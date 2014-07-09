@@ -8,7 +8,7 @@ CFLAGS = -Wall -O2 --std=c++11 -L/usr/local/lib
 all: $(BINS) msg_pb2.py
 
 
-$(BINS): %: %.cc msg.pb.cc
+$(BINS): %: %.cc msg.pb.cc asio_server.h
 	clang++ $(CFLAGS) $@.cc msg.pb.cc -o $@ $(LIBS)
 
 msg.pb.cc: msg.proto
