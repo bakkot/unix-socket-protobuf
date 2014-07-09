@@ -32,7 +32,7 @@ class handler: public asio_handler<handler> {
     void handle_message(const boost::system::error_code& error) {
     	if(error) {cerr << error.message() << endl; return;}
     	
-    	asio::Boring msg;
+    	example_mess::Boring msg;
     	bool r = msg.ParseFromArray(message.data(), message.size());
     	if(!r) {
     		cerr << "Failed parsing" << endl;

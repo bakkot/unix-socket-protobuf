@@ -14,7 +14,7 @@ int main() {
 	
 		socket.connect(boost::asio::local::stream_protocol::endpoint(ADDRESS));
 	
-		asio::Boring msg;
+		example_mess::Boring msg;
 		msg.set_cont("Greetings from CPP-land!");
 	
 	

@@ -37,7 +37,6 @@ $(GO_BINS): %: Go/src/%/main.go Go/src/example_mess/msg.pb.go Go/src/code.google
 
 Go/src/example_mess/msg.pb.go: msg.proto
 	protoc --go_out=Go/src/example_mess msg.proto
-	#GOPATH=$(CURDIR)/Go go install pb_message
 	
 Go/src/code.google.com/p/goprotobuf:
 	GOPATH=$(CURDIR)/Go go get code.google.com/p/goprotobuf/proto

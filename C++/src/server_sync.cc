@@ -30,7 +30,7 @@ class handler: public asio_handler<handler> {
       	message.resize(message_length);
 		boost::asio::read(socket_, boost::asio::buffer(message));
 
-    	asio::Boring msg;
+    	example_mess::Boring msg;
     	bool r = msg.ParseFromArray(message.data(), message.size());
     	if(!r) {
     		cerr << "Failed parsing" << endl;
