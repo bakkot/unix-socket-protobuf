@@ -16,7 +16,7 @@ all: $(BINS)
 $(BINS): %: $(BINDIR)/%
 
 $(OUTBINS): $(BINDIR)/%: src/%.cc gen/msg.pb.cc src/asio_server.h | $(BINDIR)
-	clang++ $(CPP_FLAGS) src/$*.cc gen/msg.pb.cc -o bin/$* $(CPP_LIBS)
+	g++ $(CPP_FLAGS) src/$*.cc gen/msg.pb.cc -o bin/$* $(CPP_LIBS)
 
 $(BINDIR):
 	mkdir -p $(BINDIR)
